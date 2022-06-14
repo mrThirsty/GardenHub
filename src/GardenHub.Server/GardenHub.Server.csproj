@@ -10,6 +10,7 @@
       <PackageReference Include="Hangfire.AspNetCore" Version="1.7.30" />
       <PackageReference Include="Hangfire.Storage.SQLite" Version="0.3.2" />
       <PackageReference Include="MQTTnet" Version="4.0.0.167" />
+      <PackageReference Include="MQTTnet.AspNetCore" Version="4.0.0.167" />
     </ItemGroup>
 
 </Project>
