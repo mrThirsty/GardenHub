@@ -23,6 +23,9 @@ The technical details are below:
 ### Nuget Packages used
  - Server
     - https://github.com/dotnet/MQTTnet
+    - https://www.nuget.org/packages/Hangfire.Core/
+    - https://www.nuget.org/packages/Hangfire.AspNetCore/
+    - https://www.nuget.org/packages/Hangfire.Storage.SQLite/
 - Client
     - https://www.nuget.org/packages/Iot.Device.Bindings/
     - https://github.com/dotnet/MQTTnet
