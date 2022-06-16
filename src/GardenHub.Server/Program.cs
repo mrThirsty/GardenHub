@@ -3,21 +3,16 @@ using MQTTnet.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// builder.Host.ConfigureWebHostDefaults(host =>
+// builder.WebHost.ConfigureKestrel(options =>
 // {
-//     host.UseKestrel(k =>
-//     {
-//         k.ListenAnyIP(1883, l => l.UseMqtt());
-//         k.ListenAnyIP(5000);
-//     });
+//     options.ListenAnyIP(1883, l => l.UseMqtt());
+//     options.ListenAnyIP(5000);
 // });
 
-ProgramStartup.RegisterServices(builder.Services);
+builder.RegisterServices();
 
 var app = builder.Build();
 
-ProgramStartup.ConfigureApplication(app);
-
-app.MapGet("/", () => "Hello World!");
+app.ConfigureApplication();
 
 app.Run();
