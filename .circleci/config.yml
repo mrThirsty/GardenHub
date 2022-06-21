@@ -7,7 +7,7 @@ jobs:
             - checkout
             - run:
                 name: Restore packages
-                command: dotnet restore ~/src/GardenHub.sln
+                command: dotnet restore /src/GardenHub.sln
             - run:
                 name: Build GardenHub
                 command: dotnet Build ~/src/GardenHub.sln --no-restore
