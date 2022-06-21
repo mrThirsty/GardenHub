@@ -96,7 +96,7 @@ public class PlantEndpoints : IEndpoint
         }
         catch (Exception e)
         {
-            logger.LogError(e, "Unable to get PLant");
+            logger.LogError(e, "Unable to get Plant");
 
             return Results.Problem(title: "Get Plant",
                 detail: "Unable to get the given plant due to a server error", statusCode: 500);

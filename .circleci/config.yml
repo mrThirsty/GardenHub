@@ -1,0 +1,16 @@
+verion: 2.0
+jobs:
+    build:
+        docker:
+            - image: mcr.microsoft.com/dotnet/sdk
+        steps:
+            - checkout
+            - run:
+                name: Restore packages
+                command: dotnet restore
+            - run:
+                name: Build GardenHub
+                command: dotnet Build --no-restore
+            - run:
+                name: Run Tests
+                command: fotnet test --no-restore

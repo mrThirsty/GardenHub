@@ -68,7 +68,7 @@ public class DataService<record, repoType> : IDataService<record> where record :
 
         if (!createResult)
         {
-            return new Result<record>(new OperationException(message: "Unable to update the record",operation: "UPDATE"));
+            return new Result<record>(new ValidationException(message: $"Record with Id of '{item.Id}' does not exist."));
         }
 
         return item;

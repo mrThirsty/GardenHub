@@ -9,4 +9,8 @@ public class Plant : EntityBase
 {
     [Required]
     public string PlantName { get; set; } = default!;
+    [Required]
+    public double RequiredSoilMoisture { get; set; }
+
+    public virtual ICollection<Pot> Pots { get; set; } = default!;
 }
