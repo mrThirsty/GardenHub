@@ -15,7 +15,7 @@ public class Pot : EntityBase
     public Guid PlantId { get; set; }
     
     [Required]
-    public DateTime DatePlanted { get; set; } = DateTime.Now; ddd
+    public DateTime DatePlanted { get; set; } = DateTime.Now;
     
     public virtual Plant Plant { get; set; }
 }
