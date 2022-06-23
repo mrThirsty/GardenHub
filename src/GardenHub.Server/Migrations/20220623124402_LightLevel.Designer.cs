@@ -3,6 +3,7 @@ using System;
 using GardenHub.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GardenHub.Server.Migrations
 {
     [DbContext(typeof(GardenHubDbContext))]
-    partial class GardenHubDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220623124402_LightLevel")]
+    partial class LightLevel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.6");
@@ -21,10 +23,6 @@ namespace GardenHub.Server.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PlantName")
@@ -49,10 +47,6 @@ namespace GardenHub.Server.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("DatePlanted")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Notes")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("PlantId")

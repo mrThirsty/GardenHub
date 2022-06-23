@@ -17,5 +17,7 @@ public class Pot : EntityBase
     [Required]
     public DateTime DatePlanted { get; set; } = DateTime.Now;
     
+    public string Notes { get; set; }
+    
     public virtual Plant Plant { get; set; }
 }

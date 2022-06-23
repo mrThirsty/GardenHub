@@ -11,6 +11,10 @@ public class Plant : EntityBase
     public string PlantName { get; set; } = default!;
     [Required]
     public double RequiredSoilMoisture { get; set; }
-
+    [Required]
+    public LightLevel RequiredSun { get; set; }
+    
+    public string Description { get; set; }
+    
     public virtual ICollection<Pot> Pots { get; set; } = default!;
 }
