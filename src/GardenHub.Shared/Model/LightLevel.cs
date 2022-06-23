@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace GardenHub.Server.Data.Model;
+namespace GardenHub.Shared.Model;
 
 public enum LightLevel
 {

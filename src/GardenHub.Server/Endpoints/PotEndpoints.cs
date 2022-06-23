@@ -1,9 +1,9 @@
 using FluentValidation.Results;
-using GardenHub.Server.Data.Model;
 using GardenHub.Server.DataServices.Repositories;
 using GardenHub.Server.DataServices.Services;
 using GardenHub.Server.Endpoints.Internal;
 using GardenHub.Server.Extensions;
+using GardenHub.Shared.Model;
 using LanguageExt.Common;
 
 namespace GardenHub.Server.Endpoints;

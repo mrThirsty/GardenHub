@@ -1,0 +1,25 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31717.71
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GardenHub.Web", "GardenHub.Web.csproj", "{F46DB1AC-C740-4250-825C-5CF0AA18453A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F46DB1AC-C740-4250-825C-5CF0AA18453A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F46DB1AC-C740-4250-825C-5CF0AA18453A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F46DB1AC-C740-4250-825C-5CF0AA18453A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F46DB1AC-C740-4250-825C-5CF0AA18453A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A8A5CE94-43B0-45AA-93AB-40DB5BF90FAE}
+	EndGlobalSection
+EndGlobal

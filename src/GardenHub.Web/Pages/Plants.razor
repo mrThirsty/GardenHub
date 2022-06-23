@@ -1,0 +1,56 @@
+﻿@page "/plants"
+@using GardenHub.Shared.Model
+@inject IPlantService _plantService
+
+<PageTitle>Plants</PageTitle>
+
+<MudDataGrid T="Plant" MultiSelection="true" Items="@_plants" Sortable="true" Filterable="true" QuickFilter="@_quickFilter"
+             Hideable="true" RowClick="@RowClicked" SelectedItemsChanged="@SelectedItemsChanged">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Plants</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <Columns>
+        <SelectColumn T="Plant" />
+        <Column T="Plant" Field="PlantName" Title="Name" />
+        <Column T="Plant" Field="RequiredSoilMoisture" Title="Soil Moisture Requirement"/>
+        <Column T="Plant" Field="RequiredSun" Title="Sun Requirement"/>
+        <Column T="Plant" Field="Description" />
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="Plant" />
+    </PagerContent>
+</MudDataGrid>
+
+@code {
+    private IEnumerable<Plant> _plants = default!;
+    private string _searchString = default!;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _plants = await _plantService.GetPlants();
+    }
+    
+    private Func<Plant, bool> _quickFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+
+        if (x.PlantName.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
+    };
+
+    private void RowClicked(DataGridRowClickEventArgs<Plant> args)
+    {
+       // _events.Insert(0, $"Event = RowClick, Index = {args.RowIndex}, Data = {System.Text.Json.JsonSerializer.Serialize(args.Item)}");
+    }
+
+    private void SelectedItemsChanged(HashSet<Plant> items)
+    {
+        //_events.Insert(0, $"Event = SelectedItemsChanged, Data = {System.Text.Json.JsonSerializer.Serialize(items)}");
+    }
+}

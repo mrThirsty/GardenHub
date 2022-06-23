@@ -1,8 +1,8 @@
 using FluentValidation;
 using GardenHub.Server;
 using GardenHub.Server.Data;
-using GardenHub.Server.Data.Internal;
 using GardenHub.Server.Endpoints.Internal;
+using GardenHub.Shared.Model.Internal;
 using Microsoft.EntityFrameworkCore;
 
 namespace GardenHub.Server;
@@ -29,7 +29,7 @@ public static class ProgramStartup
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
         
-        builder.Services.AddValidatorsFromAssemblyContaining<EntityBase>();
+        builder.Services.AddValidatorsFromAssemblyContaining<IApiMaker>();
 
         builder.Services.AddEndpoints<Program>(builder.Configuration);
     }

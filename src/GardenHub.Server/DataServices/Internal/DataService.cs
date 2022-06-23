@@ -1,6 +1,6 @@
 using FluentValidation;
-using GardenHub.Server.Data.Internal;
 using GardenHub.Server.Exceptions;
+using GardenHub.Shared.Model.Internal;
 using LanguageExt.Common;
 
 namespace GardenHub.Server.DataServices.Internal;

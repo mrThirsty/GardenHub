@@ -1,8 +1,9 @@
+
+
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
-using GardenHub.Server.Data.Model;
-using GardenHub.Tests.Server.Model;
+using GardenHub.Shared.Model;
 using GardenHub.Tests.Server.TestDataManagers;
 using Microsoft.AspNetCore.Mvc;
 

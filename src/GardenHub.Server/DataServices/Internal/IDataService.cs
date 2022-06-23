@@ -1,4 +1,4 @@
-using GardenHub.Server.Data.Internal;
+using GardenHub.Shared.Model.Internal;
 using LanguageExt.Common;
 
 namespace GardenHub.Server.DataServices.Internal;

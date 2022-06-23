@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using GardenHub.Server.Data.Internal;
+using GardenHub.Shared.Model.Internal;
 
-namespace GardenHub.Server.Data.Model;
+namespace GardenHub.Shared.Model;
 
 [Table("Plant")]
 public class Plant : EntityBase

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace GardenHub.Server.Data.Internal;
+namespace GardenHub.Shared.Model.Internal;
 
 public class EntityBase
 {

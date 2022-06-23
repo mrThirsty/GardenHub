@@ -1,5 +1,5 @@
 using FluentValidation;
-using GardenHub.Server.Data.Model;
+using GardenHub.Shared.Model;
 
 namespace GardenHub.Server.Data.Validators;
 

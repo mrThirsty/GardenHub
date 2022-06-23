@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
 using Bogus;
-using GardenHub.Server.Data.Model;
+using GardenHub.Shared.Model;
 
 namespace GardenHub.Tests.Server.TestDataManagers;
 

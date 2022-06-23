@@ -1,4 +1,4 @@
-using GardenHub.Server.Data.Model;
+using GardenHub.Shared.Model;
 using Microsoft.EntityFrameworkCore;
 
 namespace GardenHub.Server.Data;

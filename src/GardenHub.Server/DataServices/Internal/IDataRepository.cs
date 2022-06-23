@@ -1,4 +1,4 @@
-using GardenHub.Server.Data.Internal;
+using GardenHub.Shared.Model.Internal;
 
 namespace GardenHub.Server.DataServices.Internal;
 

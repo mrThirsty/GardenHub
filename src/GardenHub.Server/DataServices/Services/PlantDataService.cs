@@ -1,7 +1,7 @@
 using FluentValidation;
-using GardenHub.Server.Data.Model;
 using GardenHub.Server.DataServices.Internal;
 using GardenHub.Server.DataServices.Repositories;
+using GardenHub.Shared.Model;
 
 namespace GardenHub.Server.DataServices.Services;
 
