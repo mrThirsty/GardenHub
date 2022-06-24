@@ -1,7 +1,7 @@
 using FluentValidation;
 using GardenHub.Shared.Model;
 
-namespace GardenHub.Server.Data.Validators;
+namespace GardenHub.Shared.Validators;
 
 public class PotValidator: BaseValidator<Pot>
 {

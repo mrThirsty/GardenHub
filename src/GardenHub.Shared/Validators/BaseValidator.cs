@@ -1,7 +1,7 @@
 using FluentValidation;
 using GardenHub.Shared.Model.Internal;
 
-namespace GardenHub.Server.Data.Validators;
+namespace GardenHub.Shared.Validators;
 
 public class BaseValidator<T> : AbstractValidator<T> where T : EntityBase
 {

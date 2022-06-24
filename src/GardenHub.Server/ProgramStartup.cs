@@ -29,7 +29,7 @@ public static class ProgramStartup
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
         
-        builder.Services.AddValidatorsFromAssemblyContaining<IApiMaker>();
+        builder.Services.AddValidatorsFromAssemblyContaining<EntityBase>();
 
         builder.Services.AddEndpoints<Program>(builder.Configuration);
     }

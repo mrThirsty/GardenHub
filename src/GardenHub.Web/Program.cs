@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using GardenHub.Web.Services;
+using GardenHub.Web.Services.Data;
 using Microsoft.Net.Http.Headers;
 using MudBlazor.Services;
 
@@ -9,7 +10,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+
 builder.Services.AddScoped<IPlantService, PlantService>();
+builder.Services.AddScoped<IMessageHandler, MessageHandler>();
+
 builder.Services.AddHttpClient("GardenHub", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration.GetValue<string>("ApiUrl"));

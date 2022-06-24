@@ -9,5 +9,5 @@ public enum LightLevel
     [Description("Parital Shade")]
     PartialShade = 2,
     [Description("Full Shade")]
-    FullShade = 3
+    FullShade = 4
 }

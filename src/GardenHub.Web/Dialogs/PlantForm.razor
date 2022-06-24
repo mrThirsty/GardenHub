@@ -1,0 +1,63 @@
+@using GardenHub.Web.Services.Data
+@using GardenHub.Shared.Model
+@using GardenHub.Shared.Validators
+@using FluentValidation;
+
+@inject IPlantService _plantService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm Model="@Item" @ref="@_itemForm" Validation="@(_plantValidator.ValidateValue)" ValidationDelay="0">
+            <MudCard>
+                <MudCardContent>
+                    <MudTextField Label="Plant name" @bind-Value="Item.PlantName" For="@(() => Item.PlantName)" Immediate="true"/>
+                    <MudTextField Label="Description" Class="mt-3" @bind-Value="Item.Description" For="@(() => Item.Description)"/>
+                    <MudTextField Label="Required Soil Moisture" HelperText="Required Soil moisture level in %"  Immediate="true" Class="mt-3" @bind-Value="Item.RequiredSoilMoisture" For="@(() => Item.RequiredSoilMoisture)" InputType="InputType.Number"/>
+                    <MudText>Select the amount of sun required</MudText>
+                    <MudRadioGroup T="LightLevel" @bind-SelectedOption="@Item.RequiredSun" For="@(() => Item.RequiredSun)">
+                        <MudRadio Option="@LightLevel.FullSun">Full Sun</MudRadio>
+                        <MudRadio Option="@LightLevel.PartialShade">Partial Shade</MudRadio>
+                        <MudRadio Option="@LightLevel.FullShade">Full Shade</MudRadio>
+                    </MudRadioGroup>
+                </MudCardContent>
+            </MudCard>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Save">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public bool IsEdit { get; set; } = false;
+    
+    [Parameter] 
+    public Plant Item { get; set; } = new();
+    
+    private MudForm _itemForm;
+    private PlantValidator _plantValidator = new();
+
+    private async Task Save()
+    {
+        await _itemForm.Validate();
+
+        if (_itemForm.IsValid)
+        {
+            bool saved = false;
+
+            if (!IsEdit) saved = await _plantService.AddPlant(Item);
+            else saved = await _plantService.UpdatePlant(Item);
+            
+            if (saved)
+                MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    void Cancel() => MudDialog.Cancel();
+}

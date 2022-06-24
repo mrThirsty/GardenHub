@@ -1,6 +1,10 @@
 ﻿@page "/plants"
 @using GardenHub.Shared.Model
+@using GardenHub.Web.Services.Data
+@using System.Collections
+
 @inject IPlantService _plantService
+@inject IDialogService _dialogService
 
 <PageTitle>Plants</PageTitle>
 
@@ -8,9 +12,16 @@
              Hideable="true" RowClick="@RowClicked" SelectedItemsChanged="@SelectedItemsChanged">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Plants</MudText>
+    
+        <MudToolBar>
+            <MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="AddItem"/>
+            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" OnClick="EditItem" Disabled="!CanEdit"/>
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Secondary" OnClick="DeleteItem" Disabled="!CanDelete"/>
+        </MudToolBar>
         <MudSpacer />
         <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
                       AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        
     </ToolBarContent>
     <Columns>
         <SelectColumn T="Plant" />
@@ -27,10 +38,13 @@
 @code {
     private IEnumerable<Plant> _plants = default!;
     private string _searchString = default!;
+    private HashSet<Plant> _selectedItems = new HashSet<Plant>();
+    private bool CanEdit => _selectedItems.Count == 1;
+    private bool CanDelete => _selectedItems.Count > 0;
     
     protected override async Task OnInitializedAsync()
     {
-        _plants = await _plantService.GetPlants();
+       _plants = await _plantService.GetPlants();
     }
     
     private Func<Plant, bool> _quickFilter => x =>
@@ -44,6 +58,43 @@
         return false;
     };
 
+    private async Task AddItem()
+    {
+        IDialogReference dialog = _dialogService.Show<Dialogs.PlantForm>("Create Plant", new DialogOptions() { DisableBackdropClick = true, MaxWidth = MaxWidth.Medium, FullWidth = true});
+
+        DialogResult result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            _plants = await _plantService.GetPlants();
+        }
+    }
+    
+    private async Task EditItem()
+    {
+        DialogParameters parameters = new DialogParameters();
+        parameters.Add("IsEdit", true);
+        parameters.Add("Item", _selectedItems.First());
+        
+        IDialogReference dialog = _dialogService.Show<Dialogs.PlantForm>("Edit Plant", parameters, new DialogOptions() { DisableBackdropClick = true });
+        DialogResult result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            _plants = await _plantService.GetPlants();
+        }
+    }
+
+    private async Task DeleteItem()
+    {
+        foreach (Plant item in _selectedItems)
+        {
+            await _plantService.DeletePlant(item.Id);
+        }
+
+        _plants = await _plantService.GetPlants();
+    }
+
     private void RowClicked(DataGridRowClickEventArgs<Plant> args)
     {
        // _events.Insert(0, $"Event = RowClick, Index = {args.RowIndex}, Data = {System.Text.Json.JsonSerializer.Serialize(args.Item)}");
@@ -51,6 +102,6 @@
 
     private void SelectedItemsChanged(HashSet<Plant> items)
     {
-        //_events.Insert(0, $"Event = SelectedItemsChanged, Data = {System.Text.Json.JsonSerializer.Serialize(items)}");
+        _selectedItems = items;
     }
 }
