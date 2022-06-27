@@ -1,5 +1,3 @@
-
-
 using System.Net;
 using System.Net.Http.Json;
 using GardenHub.Shared.Model;
@@ -8,28 +6,28 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GardenHub.Tests.Server;
 
-public class PlantServerTests: IClassFixture<ServerFactory>, IAsyncLifetime
+public class SensorServerTests : IClassFixture<ServerFactory>, IAsyncLifetime
 {
-    public PlantServerTests(ServerFactory factory)
+    public SensorServerTests(ServerFactory factory)
     {
         _factory = factory;
     }
 
     private readonly ServerFactory _factory;
-    private string _baseUrl = "/plant";
+    private string _baseUrl = "/sensor";
     private List<Guid> _IdsToDelete = new();
     
     [Fact]
-    public async Task GetPlant_ReturnsPlant_WhenPlantExists()
+    public async Task GetSensor_ReturnsSensor_WhenSensorExists()
     {
         //Arrange
         var httpClient = _factory.CreateClient();
-        var item = await PlantTestDataManager.CreateItem(httpClient);
+        var item = await SensorTestDataManager.CreateItem(httpClient);
         _IdsToDelete.Add(item.Id);
         
         //Act
         var result = await httpClient.GetAsync($"{_baseUrl}/{item.Id}");
-        var foundItem = await result.Content.ReadFromJsonAsync<Plant>();
+        var foundItem = await result.Content.ReadFromJsonAsync<Sensor>();
 
         //Arrange
         result.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -37,7 +35,7 @@ public class PlantServerTests: IClassFixture<ServerFactory>, IAsyncLifetime
     }
     
     [Fact]
-    public async Task GetPlant_ReturnsNotFound_WhenBookDoesNotExist()
+    public async Task GetSensor_ReturnsNotFound_WhenSensorDoesNotExist()
     {
         //Arrange
         var httpClient = _factory.CreateClient();
@@ -50,71 +48,71 @@ public class PlantServerTests: IClassFixture<ServerFactory>, IAsyncLifetime
     }
     
     [Fact]
-    public async Task GetAllPlants_ReturnsAllPlants_WhenPlantsExists()
+    public async Task GetAllSensors_ReturnsAllSensors_WhenSensorsExists()
     {
         //Arrange
         var httpClient = _factory.CreateClient();
-        var item = await PlantTestDataManager.CreateItem(httpClient);
+        var item = await SensorTestDataManager.CreateItem(httpClient);
         _IdsToDelete.Add(item.Id);
 
         //Act
         var result = await httpClient.GetAsync(_baseUrl);
-        var foundItems = await result.Content.ReadFromJsonAsync<List<Plant>>();
+        var foundItems = await result.Content.ReadFromJsonAsync<List<Sensor>>();
 
         //Arrange
         result.StatusCode.Should().Be(HttpStatusCode.OK);
         foundItems.Count.Should().BeGreaterThan(0);
     }
-
+    
     [Fact]
-    public async Task CreatePlant_CreatesPlant_WhenDataIsCorrect()
+    public async Task CreateSensor_CreatesSensor_WhenDataIsCorrect()
     {
         //Arrange
         var httpClient = _factory.CreateClient();
-        var item = PlantTestDataManager.GenerateItem();
+        var item = SensorTestDataManager.GenerateItem();
         
         //Act
         var result = await httpClient.PostAsJsonAsync(_baseUrl, item);
-        var createdItem = await result.Content.ReadFromJsonAsync<Plant>();
+        var createdItem = await result.Content.ReadFromJsonAsync<Sensor>();
         _IdsToDelete.Add(createdItem.Id);
         
         //Assert
         result.StatusCode.Should().Be(HttpStatusCode.Created);
         createdItem.Should().BeEquivalentTo(item, options => options.Excluding(p => p.Id));
         createdItem.Id.Should().NotBeEmpty();
-        result.Headers.Location.Should().Be($"{httpClient.BaseAddress}plant/{createdItem.Id}");
+        result.Headers.Location.Should().Be($"{httpClient.BaseAddress}sensor/{createdItem.Id}");
     }
     
     [Fact]
-    public async Task CreatePlant_Fails_WhenDataIsInvalid()
+    public async Task CreateSensor_Fails_WhenDataIsInvalid()
     {
         //Arrange
         var httpClient = _factory.CreateClient();
-        var plant = PlantTestDataManager.GenerateItem();
-        plant.PlantName = string.Empty;
+        var item = SensorTestDataManager.GenerateItem();
+        item.SensorName = string.Empty;
         
         //Act
-        var result = await httpClient.PostAsJsonAsync(_baseUrl, plant);
+        var result = await httpClient.PostAsJsonAsync(_baseUrl, item);
         var errors = await result.Content.ReadFromJsonAsync<ValidationProblemDetails>();
         var error = errors!.Errors!.Single();
 
         //Assert
         result.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        error.Key.Should().Be("PlantName");
+        error.Key.Should().Be("SensorName");
         error.Value.Length.Should().BeGreaterThan(0);
-        error.Value[0].Should().Be("'Plant Name' must not be empty.");
+        error.Value[0].Should().Be("'Sensor Name' must not be empty.");
     }
     
     [Fact]
-    public async Task CreatePlant_Fails_WhenPlantExists()
+    public async Task CreateSensor_Fails_WhenSensorExists()
     {
         //Arrange
         var httpClient = _factory.CreateClient();
-        var plant = await PlantTestDataManager.CreateItem(httpClient);
-        _IdsToDelete.Add(plant.Id);
+        var item = await SensorTestDataManager.CreateItem(httpClient);
+        _IdsToDelete.Add(item.Id);
         
         //Act
-        var result = await httpClient.PostAsJsonAsync(_baseUrl, plant);
+        var result = await httpClient.PostAsJsonAsync(_baseUrl, item);
         var errors = await result.Content.ReadFromJsonAsync<ValidationProblemDetails>();
 
         //Assert
@@ -123,61 +121,61 @@ public class PlantServerTests: IClassFixture<ServerFactory>, IAsyncLifetime
     }
 
     [Fact]
-    public async Task UpdatePlant_UpdatesPlant_WhenDataIsCorrect()
+    public async Task UpdateSensor_UpdatesSensor_WhenDataIsCorrect()
     {
         //Arrange
         var httpClient = _factory.CreateClient();
-        var plant = await PlantTestDataManager.CreateItem(httpClient);
-        _IdsToDelete.Add(plant.Id);
-        plant.PlantName = "Tomato";
+        var Sensor = await SensorTestDataManager.CreateItem(httpClient);
+        _IdsToDelete.Add(Sensor.Id);
+        Sensor.SensorName = "Sensor AAAA";
         
         //Act
-        var result = await httpClient.PutAsJsonAsync($"{_baseUrl}/{plant.Id}", plant);
-        var updatedPlant = await result.Content.ReadFromJsonAsync<Plant>();
+        var result = await httpClient.PutAsJsonAsync($"{_baseUrl}/{Sensor.Id}", Sensor);
+        var updatedSensor = await result.Content.ReadFromJsonAsync<Sensor>();
 
         //Assert
         result.StatusCode.Should().Be(HttpStatusCode.OK);
-        updatedPlant.Should().BeEquivalentTo(plant);
+        updatedSensor.Should().BeEquivalentTo(Sensor);
     }
     
     [Fact]
-    public async Task UpdatePlant_Fails_WhenDataIsInvalid()
+    public async Task UpdateSensor_Fails_WhenDataIsInvalid()
     {
         //Arrange
         var httpClient = _factory.CreateClient();
-        var plant = await PlantTestDataManager.CreateItem(httpClient);
-        _IdsToDelete.Add(plant.Id);
+        var item = await SensorTestDataManager.CreateItem(httpClient);
+        _IdsToDelete.Add(item.Id);
         
-        plant.PlantName = string.Empty;
+        item.SensorName = string.Empty;
         
         //Act
-        var result = await httpClient.PutAsJsonAsync($"{_baseUrl}/{plant.Id}", plant);
+        var result = await httpClient.PutAsJsonAsync($"{_baseUrl}/{item.Id}", item);
         var errors = await result.Content.ReadFromJsonAsync<ValidationProblemDetails>();
         var error = errors!.Errors!.Single();
 
         //Assert
         result.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        error.Key.Should().Be("PlantName");
+        error.Key.Should().Be("SensorName");
         error.Value.Length.Should().BeGreaterThan(0);
-        error.Value[0].Should().Be("'Plant Name' must not be empty.");
+        error.Value[0].Should().Be("'Sensor Name' must not be empty.");
     }
 
     [Fact]
-    public async Task UpdatePlant_Fails_WhenPlantDoesntExist()
+    public async Task UpdateSensor_Fails_WhenSensorDoesntExist()
     {
         var httpClient = _factory.CreateClient();
-        var plant = PlantTestDataManager.GenerateItem();
-        _IdsToDelete.Add(plant.Id);
+        var item = SensorTestDataManager.GenerateItem();
+        _IdsToDelete.Add(item.Id);
         
         //Act
-        var result = await httpClient.PutAsJsonAsync($"{_baseUrl}/{plant.Id}", plant);
+        var result = await httpClient.PutAsJsonAsync($"{_baseUrl}/{item.Id}", item);
         var errors = await result.Content.ReadFromJsonAsync<ValidationProblemDetails>();
 
         //Assert
         result.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        errors.Detail.Should().Be($"Record with Id of '{plant.Id}' does not exist.");
+        errors.Detail.Should().Be($"Record with Id of '{item.Id}' does not exist.");
     }
-
+    
     public async Task InitializeAsync()
     {
         
@@ -187,8 +185,8 @@ public class PlantServerTests: IClassFixture<ServerFactory>, IAsyncLifetime
     {
         var httpClient = _factory.CreateClient();
 
-        await PlantTestDataManager.DeleteItems(_IdsToDelete, httpClient);
-        
+        await SensorTestDataManager.DeleteItems(_IdsToDelete, httpClient);
+
         // foreach (Guid id in _IdsToDelete)
         // {
         //     await httpClient.DeleteAsync($"{_baseUrl}/{id}");

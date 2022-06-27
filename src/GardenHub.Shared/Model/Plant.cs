@@ -14,7 +14,7 @@ public class Plant : EntityBase
     [Required]
     public LightLevel RequiredSun { get; set; }
     
-    public string Description { get; set; }
+    public string? Description { get; set; }
     
     public virtual ICollection<Pot> Pots { get; set; } = default!;
 }
