@@ -12,6 +12,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 
 builder.Services.AddScoped<IPlantService, PlantService>();
+builder.Services.AddScoped<ISensorService, SensorService>();
 builder.Services.AddScoped<IMessageHandler, MessageHandler>();
 
 builder.Services.AddHttpClient("GardenHub", client =>

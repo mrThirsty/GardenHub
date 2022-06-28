@@ -19,5 +19,9 @@ public class Pot : EntityBase
     
     public string? Notes { get; set; }
     
+    [ForeignKey(nameof(SensorId))]
+    public Guid? SensorId { get; set; }
+    
     public virtual Plant Plant { get; set; }
+    public virtual Sensor? Sensor { get; set; }
 }

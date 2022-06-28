@@ -13,4 +13,5 @@ public class GardenHubDbContext : DbContext
     public DbSet<Plant> Plants { get; set; } = default!;
     public DbSet<Pot> Pots { get; set; } = default!;
     public DbSet<Sensor> Sensors { get; set; } = default!;
+    public DbSet<Reading> Readings { get; set; } = default!;
 }

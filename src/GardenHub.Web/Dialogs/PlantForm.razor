@@ -1,7 +1,6 @@
 @using GardenHub.Web.Services.Data
 @using GardenHub.Shared.Model
 @using GardenHub.Shared.Validators
-@using FluentValidation;
 
 @inject IPlantService _plantService
 
@@ -51,8 +50,8 @@
         {
             bool saved = false;
 
-            if (!IsEdit) saved = await _plantService.AddPlant(Item);
-            else saved = await _plantService.UpdatePlant(Item);
+            if (!IsEdit) saved = await _plantService.Add(Item);
+            else saved = await _plantService.Update(Item);
             
             if (saved)
                 MudDialog.Close(DialogResult.Ok(true));

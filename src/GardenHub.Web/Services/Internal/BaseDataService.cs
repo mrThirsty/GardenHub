@@ -9,23 +9,139 @@ using GardenHub.Shared.Model.Internal;
 
 namespace GardenHub.Web.Services.Internal;
 
-public class BaseDataService<loggerType> where loggerType: class
+public class BaseDataService<loggerType, recordType> : IDataService<recordType> where loggerType: class where recordType : EntityBase
 {
-    public BaseDataService(IHttpClientFactory clientFactory, IMessageHandler msgHandler, ILogger<loggerType> logger)
+    public BaseDataService(string baseRoute, string categoryLabel, IHttpClientFactory clientFactory, IMessageHandler msgHandler, ILogger<loggerType> logger)
     {
         Guard.Against.Null(clientFactory, nameof(clientFactory));
         Guard.Against.Null(msgHandler, nameof(msgHandler));
         Guard.Against.Null(logger, nameof(logger));
+        Guard.Against.NullOrWhiteSpace(baseRoute, nameof(baseRoute));
+        Guard.Against.NullOrWhiteSpace(categoryLabel, nameof(categoryLabel));
         
         ClientFactory = clientFactory;
         MsgHandler = msgHandler;
         Logger = logger;
+        _baseUrl = baseRoute;
+        _categoryLabel = categoryLabel;
     }
 
     protected readonly IHttpClientFactory ClientFactory;
     protected readonly IMessageHandler MsgHandler;
     protected readonly ILogger<loggerType> Logger;
     
+    private readonly string _baseUrl = default!;
+    private readonly string _categoryLabel = default!;
+    
+    #region CRUD methods
+    public async Task<IEnumerable<recordType>> Get()
+    {
+        try
+        {
+            HttpRequestMessage request = new(HttpMethod.Get, _baseUrl);
+            var client = ClientFactory.CreateClient("GardenHub");
+            var response = await client.SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var items = await response.Content.ReadFromJsonAsync<IEnumerable<recordType>>();
+
+                return items;
+            }
+        }
+        catch (Exception ex)
+        {
+            HandleError(ex, $"Error in {_categoryLabel}.Get",
+                "Something went wrong trying to get all the records. Please try again.");
+        }
+        
+        return new List<recordType>();
+    }
+    
+    public async Task<recordType> Get(Guid id)
+    {
+        try
+        {
+            HttpRequestMessage request = new(HttpMethod.Get, $"{_baseUrl}/{id}");
+            var client = ClientFactory.CreateClient("GardenHub");
+            var response = await client.SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var item = await response.Content.ReadFromJsonAsync<recordType>();
+
+                return item;
+            }
+        }
+        catch (Exception ex)
+        {
+            HandleError(ex, $"Error in {_categoryLabel}.Get(id)",
+                "Something went wrong trying to get the specified record. Please try again.");
+        }
+        
+        return null;
+    }
+
+    public async Task<bool> Add(recordType item)
+    {
+        try
+        {
+            HttpRequestMessage request = CreatePostMessage<recordType>(_baseUrl, item);
+
+            bool success = await HandleSave(request);
+
+            return success;
+        }
+        catch (Exception ex)
+        {
+            HandleError(ex, $"Error in {_categoryLabel}.Add", "Unable to save the new record, please try again.");
+        }
+
+        return false;
+    }
+    
+    public async Task<bool> Update(recordType item)
+    {
+        try
+        {
+            HttpRequestMessage request = CreatePutMessage<recordType>(_baseUrl, item);
+
+            bool success = await HandleSave(request);
+
+            return success;
+        }
+        catch (Exception ex)
+        {
+            HandleError(ex, $"Error in {_categoryLabel}.Update", "Unable to update the record, please try again.");
+        }
+
+        return false;
+    }
+
+    public async Task<bool> Delete(Guid id)
+    {
+        try
+        {
+            HttpRequestMessage request = new(HttpMethod.Delete, $"{_baseUrl}/{id}");
+            
+            HttpClient client = ClientFactory.CreateClient("GardenHub");
+            HttpResponseMessage response = await client.SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return true;
+            }
+        }
+        catch (Exception ex)
+        {
+            HandleError(ex, $"Error in {_categoryLabel}.Delete", "Unable to delete the selected record, please try again.");
+        }
+
+        return false;
+    }
+    #endregion
+    
+    #region Supporting Methods
     protected void HandleError(Exception ex, string logTitle, string userMsg)
     {
         MsgHandler.ShowError(message: userMsg);
@@ -101,4 +217,5 @@ public class BaseDataService<loggerType> where loggerType: class
 
         return false;
     }
+    #endregion
 }

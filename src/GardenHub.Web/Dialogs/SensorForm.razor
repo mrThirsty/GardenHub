@@ -1,0 +1,54 @@
+@using GardenHub.Web.Services.Data
+@using GardenHub.Shared.Model
+@using GardenHub.Shared.Validators
+
+@inject ISensorService _sensorService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm Model="@Item" @ref="@_itemForm" Validation="@(_sensorValidator.ValidateValue)" ValidationDelay="0">
+            <MudCard>
+                <MudCardContent>
+                    <MudTextField Label="Sensor name" @bind-Value="Item.SensorName" For="@(() => Item.SensorName)" Immediate="true"/>
+                </MudCardContent>
+            </MudCard>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Save">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public bool IsEdit { get; set; } = false;
+    
+    [Parameter] 
+    public Sensor Item { get; set; } = new();
+    
+    private MudForm _itemForm;
+    private SensorValidator _sensorValidator = new();
+
+    private async Task Save()
+    {
+        await _itemForm.Validate();
+
+        if (_itemForm.IsValid)
+        {
+            bool saved = false;
+
+            if (!IsEdit) saved = await _sensorService.Add(Item);
+            else saved = await _sensorService.Update(Item);
+            
+            if (saved)
+                MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    void Cancel() => MudDialog.Cancel();
+}

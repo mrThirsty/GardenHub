@@ -1,13 +1,13 @@
-﻿@page "/plants"
-@using GardenHub.Shared.Model
+@page "/sensors"
 @using GardenHub.Web.Services.Data
+@using GardenHub.Shared.Model
 
-@inject IPlantService _plantService
+@inject ISensorService _SensorService
 @inject IDialogService _dialogService
 
-<PageTitle>Plants</PageTitle>
+<PageTitle>Sensors</PageTitle>
 
-<MudDataGrid T="Plant" MultiSelection="true" Items="@_plants" Sortable="true" Filterable="true" QuickFilter="@_quickFilter"
+<MudDataGrid T="Sensor" MultiSelection="true" Items="@_sensors" Sortable="true" Filterable="true" QuickFilter="@_quickFilter"
              Hideable="true" RowClick="@RowClicked" SelectedItemsChanged="@SelectedItemsChanged">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Plants</MudText>
@@ -23,35 +23,32 @@
         
     </ToolBarContent>
     <Columns>
-        <SelectColumn T="Plant" />
-        <Column T="Plant" Field="PlantName" Title="Name" />
-        <Column T="Plant" Field="RequiredSoilMoisture" Title="Soil Moisture Requirement"/>
-        <Column T="Plant" Field="RequiredSun" Title="Sun Requirement"/>
-        <Column T="Plant" Field="Description" />
+        <SelectColumn T="Sensor" />
+        <Column T="Sensor" Field="SensorName" Title="Name" />
     </Columns>
     <PagerContent>
-        <MudDataGridPager T="Plant" />
+        <MudDataGridPager T="Sensor" />
     </PagerContent>
 </MudDataGrid>
 
 @code {
-    private IEnumerable<Plant> _plants = default!;
+    private IEnumerable<Sensor> _sensors = default!;
     private string _searchString = default!;
-    private HashSet<Plant> _selectedItems = new HashSet<Plant>();
+    private HashSet<Sensor> _selectedItems = new HashSet<Sensor>();
     private bool CanEdit => _selectedItems.Count == 1;
     private bool CanDelete => _selectedItems.Count > 0;
     
     protected override async Task OnInitializedAsync()
     {
-       _plants = await _plantService.Get();
+        _sensors = await _SensorService.Get();
     }
     
-    private Func<Plant, bool> _quickFilter => x =>
+    private Func<Sensor, bool> _quickFilter => x =>
     {
         if (string.IsNullOrWhiteSpace(_searchString))
             return true;
 
-        if (x.PlantName.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+        if (x.SensorName.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
             return true;
 
         return false;
@@ -59,13 +56,13 @@
 
     private async Task AddItem()
     {
-        IDialogReference dialog = _dialogService.Show<Dialogs.PlantForm>("Create Plant", new DialogOptions() { DisableBackdropClick = true, MaxWidth = MaxWidth.Medium, FullWidth = true});
+        IDialogReference dialog = _dialogService.Show<Dialogs.SensorForm>("Create Sensor", new DialogOptions() { DisableBackdropClick = true, MaxWidth = MaxWidth.Medium, FullWidth = true});
 
         DialogResult result = await dialog.Result;
 
         if (!result.Cancelled)
         {
-            _plants = await _plantService.Get();
+            _sensors = await _SensorService.Get();
         }
     }
     
@@ -75,31 +72,31 @@
         parameters.Add("IsEdit", true);
         parameters.Add("Item", _selectedItems.First());
         
-        IDialogReference dialog = _dialogService.Show<Dialogs.PlantForm>("Edit Plant", parameters, new DialogOptions() { DisableBackdropClick = true });
+        IDialogReference dialog = _dialogService.Show<Dialogs.SensorForm>("Edit Sensor", parameters, new DialogOptions() { DisableBackdropClick = true });
         DialogResult result = await dialog.Result;
 
         if (!result.Cancelled)
         {
-            _plants = await _plantService.Get();
+            _sensors = await _SensorService.Get();
         }
     }
 
     private async Task DeleteItem()
     {
-        foreach (Plant item in _selectedItems)
+        foreach (Sensor item in _selectedItems)
         {
-            await _plantService.Delete(item.Id);
+            await _SensorService.Delete(item.Id);
         }
 
-        _plants = await _plantService.Get();
+        _sensors = await _SensorService.Get();
     }
 
-    private void RowClicked(DataGridRowClickEventArgs<Plant> args)
+    private void RowClicked(DataGridRowClickEventArgs<Sensor> args)
     {
        // _events.Insert(0, $"Event = RowClick, Index = {args.RowIndex}, Data = {System.Text.Json.JsonSerializer.Serialize(args.Item)}");
     }
 
-    private void SelectedItemsChanged(HashSet<Plant> items)
+    private void SelectedItemsChanged(HashSet<Sensor> items)
     {
         _selectedItems = items;
     }

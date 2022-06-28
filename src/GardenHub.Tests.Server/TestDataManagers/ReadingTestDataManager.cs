@@ -4,29 +4,28 @@ using GardenHub.Shared.Model;
 
 namespace GardenHub.Tests.Server.TestDataManagers;
 
-public class PotTestDataManager
+public class ReadingTestDataManager
 {
-    private const string _BaseRoute = "/pot";
+    private const string _BaseRoute = "/reading";
     
-    public static Pot GenerateItem(Guid plantId)
+    public static Reading GenerateItem(Guid potId)
     {
-        var recordFaker = new Faker<Pot>()
+        var recordFaker = new Faker<Reading>()
             .RuleFor(p => p.Id, Guid.NewGuid)
-            .RuleFor(p => p.PotName, f => f.Lorem.Word())
-            .RuleFor(p => p.DatePlanted, DateTime.Now)
-            .RuleFor(p => p.PlantId, plantId);
+            .RuleFor(p => p.Timestamp, f => f.Date.Past())
+            .RuleFor(p => p.PotId, potId);
 
         return recordFaker.Generate();
     }
 
-    public async static Task<Pot> CreateItem(HttpClient httpClient)
+    public async static Task<Reading> CreateItem(HttpClient httpClient)
     {
-        Plant plant = await PlantTestDataManager.CreateItem(httpClient);
-        Pot item = GenerateItem(plant.Id);
+        Pot pot = await PotTestDataManager.CreateItem(httpClient);
+        Reading item = GenerateItem(pot.Id);
 
         var result = await httpClient.PostAsJsonAsync(_BaseRoute, item);
-        var createdItem = await result.Content.ReadFromJsonAsync<Pot>();
-        createdItem.Plant = plant;
+        var createdItem = await result.Content.ReadFromJsonAsync<Reading>();
+        createdItem.Pot = pot;
         
         return createdItem;
     }
