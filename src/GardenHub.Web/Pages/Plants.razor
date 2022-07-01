@@ -1,5 +1,6 @@
 ﻿@page "/plants"
 @using GardenHub.Shared.Model
+@using GardenHub.Web.Helpers
 @using GardenHub.Web.Services.Data
 
 @inject IPlantService _plantService
@@ -15,7 +16,8 @@
         <MudToolBar>
             <MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="AddItem"/>
             <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" OnClick="EditItem" Disabled="!CanEdit"/>
-            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Secondary" OnClick="DeleteItem" Disabled="!CanDelete"/>
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="DeleteItem" Disabled="!CanDelete"/>
+            <MudIconButton Icon="@Icons.Material.Filled.Grass" Color="Color.Secondary" OnClick="AddPot" Disabled="!CanEdit"/>
         </MudToolBar>
         <MudSpacer />
         <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
@@ -26,7 +28,11 @@
         <SelectColumn T="Plant" />
         <Column T="Plant" Field="PlantName" Title="Name" />
         <Column T="Plant" Field="RequiredSoilMoisture" Title="Soil Moisture Requirement"/>
-        <Column T="Plant" Field="RequiredSun" Title="Sun Requirement"/>
+        <Column T="Plant" Field="RequiredSun" Title="Sun Requirement">
+            <CellTemplate>
+                @context.Item.RequiredSun.GetFriendlyEnum()
+            </CellTemplate>
+        </Column>
         <Column T="Plant" Field="Description" />
     </Columns>
     <PagerContent>
@@ -92,6 +98,14 @@
         }
 
         _plants = await _plantService.Get();
+    }
+
+    private async Task AddPot()
+    {
+        DialogParameters parameters = new DialogParameters();
+        parameters.Add("Plant",_selectedItems.First());
+
+        _dialogService.Show<Dialogs.PotForm>(title: $"Add pot for {_selectedItems.First().PlantName}", parameters, new DialogOptions() { DisableBackdropClick = true });
     }
 
     private void RowClicked(DataGridRowClickEventArgs<Plant> args)

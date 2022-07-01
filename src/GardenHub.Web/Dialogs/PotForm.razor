@@ -1,5 +1,87 @@
-<h3>PotForm</h3>
+@using GardenHub.Web.Services.Data
+@using GardenHub.Shared.Model
+@using GardenHub.Shared.Validators
+
+@inject IPotService _potService
+@inject IPlantService _PlantService
+@inject ISensorService _SensorService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm Model="@Item" @ref="@_itemForm" Validation="@(_potValidator.ValidateValue)" ValidationDelay="0">
+            <MudCard>
+                <MudCardContent>
+                    <MudTextField Label="Pot name" @bind-Value="Item.PotName" For="@(() => Item.PotName)" Immediate="true"/>
+                    <MudText>@Plant.PlantName</MudText>
+                    <MudDatePicker Label="Date Planted" Class="mt-3" @bind-Date="Item.DatePlanted" For="@(() => Item.DatePlanted)"/> 
+                    <MudTextField Label="Notes" HelperText="Capture any notes about your plant here."  Immediate="true" Class="mt-3" @bind-Value="Item.Notes" For="@(() => Item.Notes)"/>
+                    <MudSelect T="Guid?" @bind-Value="Item.SensorId" Label="Sensor" Placeholder="Select Sensor" AnchorOrigin="Origin.BottomCenter" For="@(() => Item.SensorId)">
+                        @if (_sensors != null)
+                        {
+                            foreach (var sensor in _sensors)
+                            {
+                                <MudSelectItem T="Guid?" Value="@sensor.Id">@sensor.SensorName</MudSelectItem>
+                            }
+                        }
+                    </MudSelect>
+                </MudCardContent>
+            </MudCard>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Save">Save</MudButton>
+    </DialogActions>
+</MudDialog>
 
 @code {
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public bool IsEdit { get; set; } = false;
     
+    [Parameter] 
+    public Pot Item { get; set; } = new();
+    
+    [Parameter]
+    public Plant Plant { get; set; }
+    
+    private MudForm _itemForm;
+    private PotValidator _potValidator = new();
+    private IEnumerable<Sensor> _sensors;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _sensors = await _SensorService.Get();
+
+        if (Plant is null && Item.PlantId != Guid.Empty)
+        {
+            Plant = await _PlantService.Get(Item.PlantId);
+        }
+        
+        if (!IsEdit && Plant is not null)
+        {
+            Item.PlantId = Plant.Id;   
+        }
+    }
+
+    private async Task Save()
+    {
+        await _itemForm.Validate();
+
+        if (_itemForm.IsValid)
+        {
+            bool saved = false;
+
+            if (!IsEdit) saved = await _potService.Add(Item);
+            else saved = await _potService.Update(Item);
+            
+            if (saved)
+                MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    void Cancel() => MudDialog.Cancel();
 }
