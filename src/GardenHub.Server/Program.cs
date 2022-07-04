@@ -3,11 +3,14 @@ using MQTTnet.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// builder.WebHost.ConfigureKestrel(options =>
-// {
-//     options.ListenAnyIP(1883, l => l.UseMqtt());
-//     options.ListenAnyIP(5000);
-// });
+int mqttPort = builder.Configuration.GetValue<int>("Ports:MQTT");
+int apiPort = builder.Configuration.GetValue<int>("Ports:API");
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(mqttPort, options => options.UseMqtt());
+    options.ListenAnyIP(apiPort, options => options.UseHttps());
+});
 
 builder.RegisterServices();
 

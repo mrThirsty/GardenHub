@@ -5,11 +5,20 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <LangVersion>10</LangVersion>
+        <AssemblyVersion>0.0.0.1</AssemblyVersion>
+        <FileVersion>0.0.0.1</FileVersion>
+        <AssemblyName>GardenHubMonitor</AssemblyName>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <PlatformTarget>AnyCPU</PlatformTarget>
     </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="Iot.Device.Bindings" Version="2.1.0" />
       <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
+      <PackageReference Include="MQTTnet" Version="4.0.1.184" />
       <PackageReference Include="System.Device.Gpio" Version="2.1.0" />
     </ItemGroup>
 
@@ -17,6 +26,10 @@
       <None Update="appsettings.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\GardenHub.Shared\GardenHub.Shared.csproj" />
     </ItemGroup>
 
 </Project>

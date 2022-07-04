@@ -1,33 +1,74 @@
 using System.Device.I2c;
 using Iot.Device.Ads1115;
+using System.Linq;
 
 namespace GardenHub.Monitor.Framework;
 
 public class SoilMoistureSensorManager
 {
-    public SoilMoistureSensorManager(int sensorCount = 4)
+    public SoilMoistureSensorManager(MonitorConfig config)
     {
         _device = I2cDevice.Create(new I2cConnectionSettings(1, 0x48));
         _controller = new(_device);
-        _sensorCount = sensorCount;
+        _config = config;
     }
     
-    private readonly I2cDevice _device;// = I2cDevice.Create(new I2cConnectionSettings(1,0x48));
-    private readonly Ads1115 _controller; // = new Ads1115(device);
-    private readonly int _sensorCount = 0;
+    private readonly I2cDevice _device;
+    private readonly Ads1115 _controller;
+    private readonly MonitorConfig _config = default!;
+    
+    private IList<Sensor> _sensors = default!;
+    private double _dry = 2.44875;
+    private double _wet = 0.9425;
 
-    public Dictionary<int, double> GetReadings()
+    public async Task InitialiseAsync()
     {
-        Dictionary<int, double> values = new Dictionary<int, double>();
+        _sensors = new List<Sensor>();
 
-        int sensorNumber = 0;
-
-        while (sensorNumber < _sensorCount)
+        foreach (var sensorConfig in _config.SensorConfig)
         {
-            var reading = _controller.ReadVoltage((InputMultiplexer)sensorNumber);
-            values.Add(sensorNumber, reading.Value);
+            _sensors.Add(new Sensor(sensorConfig.Index, sensorConfig.Enabled,GetSensorAddress(sensorConfig.Index)));
+        }
+    }
+    
+    public IEnumerable<SensorReading> GetReadings()
+    {
+        List<SensorReading> values = new List<SensorReading>();
+
+        var sensorsToRead = _sensors.Where(s => s.Enabled);
+
+        foreach (var sensor in sensorsToRead)
+        {
+            var reading = _controller.ReadVoltage(sensor.Address);
+            // ((_wet-_dry)-(_wet-reading.Value))/(_wet-_dry)
+            double percValue = ((_wet - _dry) - (_wet - reading.Value)) / (_wet - _dry);
+            
+            values.Add(new SensorReading(sensor.Index, percValue));
         }
 
         return values;
+    }
+
+    private InputMultiplexer GetSensorAddress(int sensorIndex)
+    {
+        InputMultiplexer address = InputMultiplexer.AIN0;
+        
+        switch (sensorIndex)
+        {
+            case 0:
+                address = InputMultiplexer.AIN0;
+                break;  
+            case 1:
+                address = InputMultiplexer.AIN1;
+                break;
+            case 2:
+                address = InputMultiplexer.AIN2;
+                break;
+            case 3:
+                address = InputMultiplexer.AIN3;
+                break;
+        }
+
+        return address;
     }
 }
