@@ -30,7 +30,12 @@ public class SoilMoistureSensorManager
             _sensors.Add(new Sensor(sensorConfig.Index, sensorConfig.Enabled,GetSensorAddress(sensorConfig.Index)));
         }
     }
-    
+
+    public async Task<IEnumerable<string>> GetSensors()
+    {
+        return _sensors.Select(s => $"{_config.MonitorName}-{s.Index}");
+    }
+
     public IEnumerable<SensorReading> GetReadings()
     {
         List<SensorReading> values = new List<SensorReading>();

@@ -5,5 +5,5 @@ namespace GardenHub.Server.DataServices.Services;
 
 public interface ISensorDataService : IDataService<Sensor>
 {
-    
+    Task<Sensor?> GetSensorByName(string name);
 }

@@ -19,13 +19,14 @@ MonitorConfig monitorConfig = new(appConfig);
 
 Console.WriteLine("Monitor configuration loaded.");
 
-Console.WriteLine("Configuring MQTT...");
-IGardenHubClient gardenClient = new GardenHubMQTTClient(monitorConfig);
-await gardenClient.Connect();
 Console.WriteLine("Loading GPIO controller");
 
 SoilMoistureSensorManager sensorManager = new(monitorConfig);
 await sensorManager.InitialiseAsync();
+
+Console.WriteLine("Configuring MQTT...");
+IGardenHubClient gardenClient = new GardenHubMQTTClient(monitorConfig, sensorManager.GetSensors);
+await gardenClient.Connect();
 
 bool runApp = true;
 

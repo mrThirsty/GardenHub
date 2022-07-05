@@ -14,5 +14,8 @@ public class Reading : EntityBase
     [Required]
     public DateTime Timestamp { get; set; }
     
+    [Required]
+    public double SoilMoistureReading { get; set; }
+    
     public virtual  Pot Pot { get; set; }
 }

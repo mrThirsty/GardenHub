@@ -11,4 +11,11 @@ public class PotDataService : DataService<Pot, IPotDataRepository>, IPotDataServ
     {
         
     }
+
+    public async Task<Pot?> FindPotBySensorId(Guid sensorId)
+    {
+        var pots = await Repository.GetAllAsync();
+
+        return pots.Where(p => p.SensorId == sensorId).FirstOrDefault();
+    }
 }

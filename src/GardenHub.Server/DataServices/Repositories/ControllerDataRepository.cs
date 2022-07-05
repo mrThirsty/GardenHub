@@ -15,7 +15,7 @@ public class ControllerDataRepository : DataRepository<SensorController>, IContr
     public async Task<SensorController?> FindByControllerId(string controllerId)
     {
         var items = Context.Set<SensorController>().Where(c =>
-            String.Compare(c.ControllerId, controllerId, StringComparison.InvariantCultureIgnoreCase) == 0);
+            c.ControllerId.Equals(controllerId));
 
         return await items.FirstOrDefaultAsync();
     }

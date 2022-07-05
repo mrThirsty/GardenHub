@@ -11,4 +11,12 @@ public class SensorDataService : DataService<Sensor, ISensorDataRepository>, ISe
     {
         
     }
+
+    public async Task<Sensor?> GetSensorByName(string name)
+    {
+        var sensors = await Repository.GetAllAsync();
+
+        return sensors.Where(s => s.SensorName.Equals(name, StringComparison.InvariantCultureIgnoreCase))
+            .FirstOrDefault();
+    }
 }
