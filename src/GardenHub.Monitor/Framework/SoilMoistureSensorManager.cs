@@ -1,10 +1,12 @@
 using System.Device.I2c;
 using Iot.Device.Ads1115;
 using System.Linq;
+using GardenHub.Monitor.Framework.Config;
+using GardenHub.Monitor.Framework.Interfaces;
 
 namespace GardenHub.Monitor.Framework;
 
-public class SoilMoistureSensorManager
+public class SoilMoistureSensorManager : ISoilMoistureSensorManager
 {
     public SoilMoistureSensorManager(MonitorConfig config)
     {
@@ -17,30 +19,24 @@ public class SoilMoistureSensorManager
     private readonly Ads1115 _controller;
     private readonly MonitorConfig _config = default!;
     
-    private IList<Sensor> _sensors = default!;
     private double _dry = 2.44875;
     private double _wet = 0.9425;
 
     public async Task InitialiseAsync()
     {
-        _sensors = new List<Sensor>();
-
-        foreach (var sensorConfig in _config.SensorConfig)
-        {
-            _sensors.Add(new Sensor(sensorConfig.Index, sensorConfig.Enabled,GetSensorAddress(sensorConfig.Index)));
-        }
-    }
-
-    public async Task<IEnumerable<string>> GetSensors()
-    {
-        return _sensors.Select(s => $"{_config.MonitorName}-{s.Index}");
+        // _sensors = new List<Sensor>();
+        //
+        // foreach (var sensorConfig in _config.SensorConfig)
+        // {
+        //     _sensors.Add(new Sensor(sensorConfig.Index, sensorConfig.Enabled,GetSensorAddress(sensorConfig.Index)));
+        // }
     }
 
     public IEnumerable<SensorReading> GetReadings()
     {
         List<SensorReading> values = new List<SensorReading>();
 
-        var sensorsToRead = _sensors.Where(s => s.Enabled);
+        var sensorsToRead = _config.Sensors.Where(s => s.Enabled);
 
         foreach (var sensor in sensorsToRead)
         {
@@ -52,28 +48,5 @@ public class SoilMoistureSensorManager
         }
 
         return values;
-    }
-
-    private InputMultiplexer GetSensorAddress(int sensorIndex)
-    {
-        InputMultiplexer address = InputMultiplexer.AIN0;
-        
-        switch (sensorIndex)
-        {
-            case 0:
-                address = InputMultiplexer.AIN0;
-                break;  
-            case 1:
-                address = InputMultiplexer.AIN1;
-                break;
-            case 2:
-                address = InputMultiplexer.AIN2;
-                break;
-            case 3:
-                address = InputMultiplexer.AIN3;
-                break;
-        }
-
-        return address;
     }
 }

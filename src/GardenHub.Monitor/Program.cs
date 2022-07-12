@@ -1,8 +1,15 @@
 ﻿using GardenHub.Monitor;
 using Microsoft.Extensions.Configuration;
 using System.Text;
+using CommandLine;
 using GardenHub.Monitor.Framework;
+using GardenHub.Monitor.Framework.Config;
+using GardenHub.Monitor.Framework.Events;
+using GardenHub.Monitor.Framework.Interfaces;
 using GardenHub.Shared.Messages;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 // dotnet publish -o /Users/Andrew/Sandbox/Releases/GardenHub/Monitor -r linux-arm64 --sc -c Release
 
@@ -15,39 +22,38 @@ var configBuilder = new ConfigurationBuilder()
     
 IConfiguration appConfig = configBuilder.Build();
 
-MonitorConfig monitorConfig = new(appConfig);
+MonitorConfig monitorConfig = new(); //appConfig);
+await monitorConfig.LoadSetup();
 
-Console.WriteLine("Monitor configuration loaded.");
-
-Console.WriteLine("Loading GPIO controller");
-
-SoilMoistureSensorManager sensorManager = new(monitorConfig);
-await sensorManager.InitialiseAsync();
-
-Console.WriteLine("Configuring MQTT...");
-IGardenHubClient gardenClient = new GardenHubMQTTClient(monitorConfig, sensorManager.GetSensors);
-await gardenClient.Connect();
-
-bool runApp = true;
-
-while (runApp)
-{
-    Console.WriteLine("Reading sensors");
-    var readings = sensorManager.GetReadings();
-    StringBuilder readingLine = new StringBuilder();
-    
-    foreach (var reading in readings)
+using IHost host = Host.CreateDefaultBuilder(args)
+    .ConfigureServices((_, services) =>
     {
-        readingLine.Append($"Sensor{reading.Sensor}:{reading.Moisture}    ");
+        services.AddSingleton<IConfiguration>(appConfig);
+        services.AddSingleton(monitorConfig);
 
-        var msg = new MoistureReadingMessage(monitorConfig.MonitorName, $"{monitorConfig.MonitorName}-{reading.Sensor}", reading.Moisture);
+        services.AddSingleton<ISoilMoistureSensorManager, SoilMoistureSensorManager>();
+        services.AddSingleton<IGardenHubClient, GardenHubMQTTClient>();
+        services.AddSingleton<IEventManager, EventAggregator>();
+    })
+    .ConfigureLogging((_, logging) =>
+    {
+        logging.AddConsole();
+    }).Build();
 
-        await gardenClient.SendMessage<MoistureReadingMessage>("SoilMoistureReading", msg);
-    }
-    
-    Console.WriteLine(readingLine.ToString());
+var optionsResult = CommandLine.Parser.Default.ParseArguments<MonitorOptions>(args);
 
-    Thread.Sleep(monitorConfig.ReadingDelay);
+MonitorManager manager = new(host.Services);
+
+switch (optionsResult.Tag)
+{
+    case ParserResultType.Parsed:
+        manager.RunOptions(optionsResult.Value);
+        break;
+    case ParserResultType.NotParsed:
+        manager.HandleParseError(optionsResult.Errors);
+        break;
 }
 
-await gardenClient.Disconnect();
+Console.WriteLine("");
+Console.WriteLine("Press any key to exit");
+Console.ReadKey();

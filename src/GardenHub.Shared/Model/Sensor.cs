@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using GardenHub.Shared.Model.Internal;
@@ -8,6 +9,10 @@ public class Sensor : EntityBase
 {
     [Required]
     public string SensorName { get; set; }
+    
+    [Required]
+    [DefaultValue(true)]
+    public bool Enabled { get; set; }
     
     [Required]
     [ForeignKey(nameof(SensorControllerId))]

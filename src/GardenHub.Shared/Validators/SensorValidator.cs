@@ -8,5 +8,6 @@ public class SensorValidator : BaseValidator<Sensor>
     public SensorValidator()
     {
         RuleFor(s => s.SensorName).NotEmpty();
+        RuleFor(s => s.Enabled).NotEmpty();
     }
 }

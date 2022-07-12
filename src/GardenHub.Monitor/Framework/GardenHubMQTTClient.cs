@@ -1,6 +1,11 @@
+using System.Text;
 using System.Text.Json;
+using GardenHub.Monitor.Framework.Config;
+using GardenHub.Monitor.Framework.Events.Payloads;
+using GardenHub.Monitor.Framework.Interfaces;
 using GardenHub.Shared.Messages;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualBasic;
 using MQTTnet;
 using MQTTnet.Client;
@@ -10,44 +15,52 @@ namespace GardenHub.Monitor.Framework;
 
 public class GardenHubMQTTClient : IGardenHubClient
 {
-    public GardenHubMQTTClient(MonitorConfig config, Func<Task<IEnumerable<string>>> GetSensorList)
+    public GardenHubMQTTClient(MonitorConfig config, IEventManager events, ILogger<GardenHubMQTTClient> logger)
     {
         _factory = new();
         _server = config.MQTTServer;
         _port = config.MQTTPort;
         _clientId = config.MonitorName;
 
-        _GetSensorList = GetSensorList;
+        _events = events;
+        _logger = logger;
+        _sensors = config.Sensors.Where(s => s.Enabled).Select(s => s.SensorName);
     }
 
     private MqttFactory _factory;
     private IMqttClient _client;
+    
     private bool _connected = false;
-    private string _server;
-    private int _port;
-    private string _clientId;
-
-    private Func<Task<IEnumerable<string>>> _GetSensorList;
+    private readonly string _server;
+    private readonly int _port;
+    private readonly string _clientId;
+    private readonly IEnumerable<string> _sensors;
+    private readonly IEventManager _events;
+    private readonly ILogger<GardenHubMQTTClient> _logger;
 
     public async Task Connect()
     {
         _client = _factory.CreateMqttClient();
         _client.ApplicationMessageReceivedAsync += ProcessMessage;
 
-        Console.WriteLine($"Connecting to the MQTT broker: {_server}");
+        _logger.LogInformation($"Connecting to the MQTT broker: {_server}");
         var options = new MqttClientOptionsBuilder().WithClientId(_clientId).WithTcpServer(_server, _port).Build();
-        //var options = new MqttClientOptionsBuilder().WithWebSocketServer($"{_url}/mqtt").Build();
         var response = await _client.ConnectAsync(options, CancellationToken.None);
 
         _connected = response.ResultCode == MqttClientConnectResultCode.Success;
 
         if (_connected)
         {
-            Console.WriteLine("Subscribing to GardenHub message Topic");
+            _logger.LogInformation("Subscribing to GardenHub message Topic");
             var subscribeDetailOptions = _factory.CreateSubscribeOptionsBuilder()
                 .WithTopicFilter(f => f.WithTopic(GardenHub.Shared.Constants.MQTT.Topics.RequestClientDetails)).Build();
 
             await _client.SubscribeAsync(subscribeDetailOptions, CancellationToken.None);
+            
+            var subscribeReconfigureOptions = _factory.CreateSubscribeOptionsBuilder()
+                .WithTopicFilter(f => f.WithTopic($"{GardenHub.Shared.Constants.MQTT.Topics.MonitorReconfigure}/{_clientId}")).Build();
+
+            await _client.SubscribeAsync(subscribeReconfigureOptions, CancellationToken.None);
         }
     }
 
@@ -74,28 +87,29 @@ public class GardenHubMQTTClient : IGardenHubClient
 
     public async Task ProcessMessage(MqttApplicationMessageReceivedEventArgs args)
     {
-        Console.ForegroundColor = ConsoleColor.Magenta;
-        Console.WriteLine(args);
-        Console.ForegroundColor = ConsoleColor.White;
         if (args.ApplicationMessage.Topic.Equals(Constants.MQTT.Topics.RequestClientDetails))
         {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("GardenHub has requested sensor configuration.");
-            Console.ForegroundColor = ConsoleColor.White;
+            _logger.LogInformation("GardenHub has requested sensor configuration.");
             
-            var sensors = await _GetSensorList();
-
             var payload = new ClientDetailsMessage()
             {
                 ControllerId = _clientId,
-                Sensors = sensors
+                Sensors = _sensors
             };
 
             await SendMessage<ClientDetailsMessage>(Constants.MQTT.Topics.ClientDetailsResponse, payload);
             
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("sensor configuration has been sent to GardenHub.");
-            Console.ForegroundColor = ConsoleColor.White;
+            _logger.LogInformation("sensor configuration has been sent to GardenHub.");
+        }
+
+        if (args.ApplicationMessage.Topic.Equals($"{Constants.MQTT.Topics.MonitorReconfigure}/{_client}"))
+        {
+            _logger.LogInformation("GardenHub has sent new configuration.");
+            string payload = Encoding.UTF8.GetString(args.ApplicationMessage.Payload);
+            ClientReconfigure config = JsonSerializer.Deserialize<ClientReconfigure>(payload);
+            
+            // call monitor reconfigure somehow. probable and event of some sort.
+            _events.GetEvent<MonitorConfigChangedEvent>().Publish(config);
         }
     }
 }

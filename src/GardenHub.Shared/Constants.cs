@@ -9,6 +9,7 @@ public static class Constants
             public const string SoilMoistureReading = "SoilMoistureReading";
             public const string RequestClientDetails = "RequestClientDetails";
             public const string ClientDetailsResponse = "ClientDetailsResponse";
+            public const string MonitorReconfigure = "MonitorReconfigure";
         }
     }
 }

@@ -16,6 +16,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="CommandLineParser" Version="2.9.1" />
       <PackageReference Include="Iot.Device.Bindings" Version="2.1.0" />
       <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
       <PackageReference Include="MQTTnet" Version="4.0.1.184" />
