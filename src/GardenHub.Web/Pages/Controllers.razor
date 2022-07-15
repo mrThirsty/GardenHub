@@ -1,13 +1,13 @@
-@page "/sensors"
+@page "/controllers"
 @using GardenHub.Web.Services.Data
 @using GardenHub.Shared.Model
 
-@inject ISensorService _SensorService
+@inject IControllerService _ControllerService
 @inject IDialogService _dialogService
 
-<PageTitle>Sensors</PageTitle>
+<PageTitle>Controllers</PageTitle>
 
-<MudDataGrid T="Sensor" MultiSelection="true" Items="@_sensors" Sortable="true" Filterable="true" QuickFilter="@_quickFilter"
+<MudDataGrid T="SensorController" MultiSelection="true" Items="@_controllers" Sortable="true" Filterable="true" QuickFilter="@_quickFilter"
              Hideable="true" RowClick="@RowClicked" SelectedItemsChanged="@SelectedItemsChanged">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Plants</MudText>
@@ -23,32 +23,35 @@
         
     </ToolBarContent>
     <Columns>
-        <SelectColumn T="Sensor" />
-        <Column T="Sensor" Field="SensorName" Title="Name" />
+        <SelectColumn T="SensorController" />
+        <Column T="SensorController" Field="ControllerId" Title="Controller Identifier" />
+        <Column T="SensorController" Field="Description" Title="Description" />
+        <Column T="SensorController" Field="ReportingInterval" Title="Reporting Interval" />
+        <Column T="SensorController" Field="Enabled" Title="Enabled" />
     </Columns>
     <PagerContent>
-        <MudDataGridPager T="Sensor" />
+        <MudDataGridPager T="SensorController" />
     </PagerContent>
 </MudDataGrid>
 
 @code {
-    private IEnumerable<Sensor> _sensors = default!;
+    private IEnumerable<SensorController> _controllers = default!;
     private string _searchString = default!;
-    private HashSet<Sensor> _selectedItems = new HashSet<Sensor>();
+    private HashSet<SensorController> _selectedItems = new HashSet<SensorController>();
     private bool CanEdit => _selectedItems.Count == 1;
     private bool CanDelete => _selectedItems.Count > 0;
     
     protected override async Task OnInitializedAsync()
     {
-        _sensors = await _SensorService.Get();
+        _controllers = await _ControllerService.Get();
     }
     
-    private Func<Sensor, bool> _quickFilter => x =>
+    private Func<SensorController, bool> _quickFilter => x =>
     {
         if (string.IsNullOrWhiteSpace(_searchString))
             return true;
 
-        if (x.SensorName.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+        if (x.ControllerId.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
             return true;
 
         return false;
@@ -62,7 +65,7 @@
 
         if (!result.Cancelled)
         {
-            _sensors = await _SensorService.Get();
+            _controllers = await _ControllerService.Get();
         }
     }
     
@@ -77,26 +80,26 @@
 
         if (!result.Cancelled)
         {
-            _sensors = await _SensorService.Get();
+            _controllers = await _ControllerService.Get();
         }
     }
 
     private async Task DeleteItem()
     {
-        foreach (Sensor item in _selectedItems)
+        foreach (SensorController item in _selectedItems)
         {
-            await _SensorService.Delete(item.Id);
+            await _ControllerService.Delete(item.Id);
         }
 
-        _sensors = await _SensorService.Get();
+        _controllers = await _ControllerService.Get();
     }
 
-    private void RowClicked(DataGridRowClickEventArgs<Sensor> args)
+    private void RowClicked(DataGridRowClickEventArgs<SensorController> args)
     {
        // _events.Insert(0, $"Event = RowClick, Index = {args.RowIndex}, Data = {System.Text.Json.JsonSerializer.Serialize(args.Item)}");
     }
 
-    private void SelectedItemsChanged(HashSet<Sensor> items)
+    private void SelectedItemsChanged(HashSet<SensorController> items)
     {
         _selectedItems = items;
     }

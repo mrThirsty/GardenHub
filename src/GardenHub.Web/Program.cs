@@ -14,6 +14,7 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<IPlantService, PlantService>();
 builder.Services.AddScoped<ISensorService, SensorService>();
 builder.Services.AddScoped<IPotService, PotService>();
+builder.Services.AddScoped<IControllerService, ControllerService>();
 builder.Services.AddScoped<IMessageHandler, MessageHandler>();
 
 builder.Services.AddHttpClient("GardenHub", client =>
