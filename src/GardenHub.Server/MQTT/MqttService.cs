@@ -128,11 +128,11 @@ public class MqttService
                 Console.WriteLine($"New MQTT message: {topic}");
                 Console.WriteLine($"Payload: {payload}");
 
-                if (topic!.Equals(Constants.MQTT.Topics.SoilMoistureReading, StringComparison.InvariantCultureIgnoreCase))
+                if (topic!.Equals(Constants.MQTT.Topics.MonitorReading, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    MoistureReadingMessage? msg = JsonSerializer.Deserialize<MoistureReadingMessage>(payload);
+                    MonitorReadingMessage? msg = JsonSerializer.Deserialize<MonitorReadingMessage>(payload);
 
-                    if(msg is not null) await HandleSoilMoistureReading(msg!);
+                    if(msg is not null) await HandleMonitorReading(msg!);
                 }
                 
                 if (topic!.Equals(Constants.MQTT.Topics.ClientDetailsResponse, StringComparison.InvariantCultureIgnoreCase))
@@ -180,7 +180,7 @@ public class MqttService
         }
     }
 
-    private async Task HandleSoilMoistureReading(MoistureReadingMessage msg)
+    private async Task HandleMonitorReading(MonitorReadingMessage msg)
     {
         using (var scope = _servicesScopeFactory.CreateScope())
         {
@@ -188,23 +188,31 @@ public class MqttService
             ISensorDataService sensorService = scope.ServiceProvider.GetRequiredService<ISensorDataService>();
             IPotDataService potService = scope.ServiceProvider.GetRequiredService<IPotDataService>();
 
-            var sensor = await sensorService.GetSensorByName(msg.SensorName);
-
-            if (sensor is not null)
+            foreach (var reading in msg.SoilReadings)
             {
-                var currentPot = await potService.FindPotBySensorId(sensor!.Id);
+                var sensor = await sensorService.GetSensorByName(reading.SensorName);
 
-                if (currentPot is not null)
+                if (sensor is not null)
                 {
-                    Reading newReading = new()
-                    {
-                        PotId = currentPot!.Id,
-                        Timestamp = DateTime.UtcNow,
-                        SoilMoistureReading = msg.MoistureValue
-                    };
+                    var currentPot = await potService.FindPotBySensorId(sensor!.Id);
 
-                    await readingService.CreateAsync(newReading);
+                    if (currentPot is not null)
+                    {
+                        Reading newReading = new()
+                        {
+                            PotId = currentPot!.Id,
+                            Timestamp = DateTime.UtcNow,
+                            SoilMoistureReading = reading.MoistureLevel
+                        };
+
+                        await readingService.CreateAsync(newReading);
+                    }
                 }
+            }
+
+            if (msg.Environment.TemperatureEnabled && msg.Environment.ReadingValid)
+            {
+                
             }
         }
     }

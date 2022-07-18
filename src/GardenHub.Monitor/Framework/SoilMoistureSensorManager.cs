@@ -3,6 +3,7 @@ using Iot.Device.Ads1115;
 using System.Linq;
 using GardenHub.Monitor.Framework.Config;
 using GardenHub.Monitor.Framework.Interfaces;
+using GardenHub.Monitor.Framework.Readings;
 
 namespace GardenHub.Monitor.Framework;
 

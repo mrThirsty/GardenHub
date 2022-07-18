@@ -1,4 +1,5 @@
 using GardenHub.Monitor.Framework.Config;
+using GardenHub.Monitor.Framework.Readings;
 
 namespace GardenHub.Monitor.Framework.Interfaces;
 

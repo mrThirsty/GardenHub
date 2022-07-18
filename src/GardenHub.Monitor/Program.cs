@@ -32,6 +32,7 @@ using IHost host = Host.CreateDefaultBuilder(args)
         services.AddSingleton(monitorConfig);
 
         services.AddSingleton<ISoilMoistureSensorManager, SoilMoistureSensorManager>();
+        services.AddSingleton<ITemperatureSensorManager, TemperatureSensorManager>();
         services.AddSingleton<IGardenHubClient, GardenHubMQTTClient>();
         services.AddSingleton<IEventManager, EventAggregator>();
     })

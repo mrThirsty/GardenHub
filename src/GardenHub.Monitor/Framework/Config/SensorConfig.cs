@@ -23,5 +23,3 @@ public class SensorConfig
     
     public InputMultiplexer Address { get; set; }
 }
-
-public record SensorReading(int Sensor, double Moisture);

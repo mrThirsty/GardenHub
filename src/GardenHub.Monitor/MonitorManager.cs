@@ -1,4 +1,7 @@
+using System.Collections;
+using System.Reflection.Metadata;
 using System.Text;
+using System.Text.Json;
 using CommandLine;
 using GardenHub.Monitor.Framework;
 using GardenHub.Monitor.Framework.Config;
@@ -8,6 +11,8 @@ using GardenHub.Monitor.Framework.Interfaces;
 using GardenHub.Shared.Messages;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using GardenHub.Monitor.Framework.Readings;
+using GardenHub.Shared;
 
 namespace GardenHub.Monitor;
 
@@ -103,6 +108,24 @@ public class MonitorManager
                         capturedValue = monitorConfig.ReportingInterval.ToString();
                     }
                 } while (string.IsNullOrWhiteSpace(capturedValue));
+
+                do
+                {
+                    Console.Write($"Enable Temperature sensor ({(monitorConfig.EnableTemperature ? "Yes": "No")}):");
+                    capturedValue = Console.ReadLine().ToLower();    
+                } while (capturedValue != "yes" && capturedValue != "no" && string.IsNullOrWhiteSpace(capturedValue));
+
+                if(!string.IsNullOrWhiteSpace(capturedValue))
+                    monitorConfig.EnableTemperature =  (capturedValue == "yes") ? true : false;
+
+                if (monitorConfig.EnableTemperature)
+                {
+                    Console.Write($"GPIO Pin for DHT22 sensor ({monitorConfig.TemperaturePin}): ");
+                    capturedValue = Console.ReadLine();
+
+                    if (!string.IsNullOrWhiteSpace(capturedValue))
+                        monitorConfig.TemperaturePin = Convert.ToInt32(capturedValue);
+                }
                 
                 monitorConfig.Enabled = true;
                 
@@ -119,7 +142,9 @@ public class MonitorManager
                     
                     _logger.LogInformation("Configuring sensors.");
                     ISoilMoistureSensorManager sensorManager = _services.GetRequiredService<ISoilMoistureSensorManager>();//new(monitorConfig);
+                    ITemperatureSensorManager tempManager = _services.GetRequiredService<ITemperatureSensorManager>();
                     await sensorManager.InitialiseAsync();
+                    await tempManager.InitialiseAsync();
 
                     _logger.LogInformation("Configuring MQTT...");
                     IGardenHubClient gardenClient = _services.GetRequiredService<IGardenHubClient>();
@@ -130,18 +155,41 @@ public class MonitorManager
                     {
                         _logger.LogInformation("Reading sensors");
                         var readings = sensorManager.GetReadings();
-                        StringBuilder readingLine = new StringBuilder();
-        
+                        
+
+                        MonitorReadingMessage msg = new MonitorReadingMessage(monitorConfig.MonitorName);
+                        msg.Environment = new()
+                        {
+                            TemperatureEnabled = monitorConfig.EnableTemperature
+                        };
+
+                        if (msg.Environment.TemperatureEnabled)
+                        {
+                            var tempReading = tempManager.GetReadings();
+
+                            msg.Environment.Humidity = tempReading.Humidty;
+                            msg.Environment.Temperature = tempReading.Temperature;
+                            msg.Environment.FeelsLike = tempReading.FeelsLike;
+                            msg.Environment.ReadingValid = (tempReading.HumidtyValid && tempReading.TemperaturValid);
+                        }
+                        
+                        List<SoilReading> soilReadings = new();
+
                         foreach (var reading in readings)
                         {
-                            readingLine.Append($"Sensor{reading.Sensor}:{reading.Moisture}    ");
-
-                            var msg = new MoistureReadingMessage(monitorConfig.MonitorName, $"{monitorConfig.MonitorName}-{reading.Sensor}", reading.Moisture);
-
-                            await gardenClient.SendMessage<MoistureReadingMessage>("SoilMoistureReading", msg);
+                            soilReadings.Add(new()
+                            {
+                                Sensor = reading.Sensor,
+                                SensorName = $"{monitorConfig.MonitorName}-{reading.Sensor}",
+                                MoistureLevel = reading.Moisture
+                            });
                         }
-        
-                        _logger.LogInformation(readingLine.ToString());
+
+                        msg.SoilReadings = soilReadings.ToArray();
+                        
+                        await gardenClient.SendMessage<MonitorReadingMessage>(Constants.MQTT.Topics.MonitorReading, msg);
+
+                        _logger.LogInformation(JsonSerializer.Serialize(msg));
 
                         Thread.Sleep(monitorConfig.ReportingInterval);
                     }

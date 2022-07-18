@@ -6,7 +6,7 @@ public static class Constants
     {
         public static class Topics
         {
-            public const string SoilMoistureReading = "SoilMoistureReading";
+            public const string MonitorReading = "MonitorReading";
             public const string RequestClientDetails = "RequestClientDetails";
             public const string ClientDetailsResponse = "ClientDetailsResponse";
             public const string MonitorReconfigure = "MonitorReconfigure";

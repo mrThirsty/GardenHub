@@ -23,6 +23,8 @@ public class MonitorConfig
         Sensors = new List<SensorConfig>();
         Configured = false;
         ControllerType = ControllerType.FourSensor;
+        EnableTemperature = false;
+        TemperaturePin = 24;
     }
     
     public string MQTTServer { get; set; }
@@ -33,6 +35,9 @@ public class MonitorConfig
     
     public TimeSpan ReportingInterval { get; set; }
     public bool Enabled { get; set; }
+    
+    public bool EnableTemperature { get; set; }
+    public int TemperaturePin { get; set; }
     
     public bool Configured { get; set; }
     
