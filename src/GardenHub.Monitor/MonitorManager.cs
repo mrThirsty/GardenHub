@@ -51,17 +51,42 @@ public class MonitorManager
                 capturedValue = Console.ReadLine();
                 monitorConfig.MonitorName =
                     string.IsNullOrWhiteSpace(capturedValue) ? monitorConfig.MonitorName : capturedValue;
+
+                do
+                {
+                    Console.Write($"Enable MQTT ({(monitorConfig.EnableMQTT ? "Yes": "No")}):");
+                    capturedValue = Console.ReadLine().ToLower();    
+                } while (capturedValue != "yes" && capturedValue != "no" && !string.IsNullOrWhiteSpace(capturedValue));
+
+                if (!string.IsNullOrWhiteSpace(capturedValue))
+                    monitorConfig.EnableMQTT = capturedValue == "yes";
+
+                if (monitorConfig.EnableMQTT)
+                {
+                    do
+                    {
+                        Console.Write($"Enable Reporting to GardenHub ({(monitorConfig.Enabled ? "Yes" : "No")}):");
+                        capturedValue = Console.ReadLine().ToLower();
+                    } while (capturedValue != "yes" && capturedValue != "no" &&
+                             !string.IsNullOrWhiteSpace(capturedValue));
+
+                    if (!string.IsNullOrWhiteSpace(capturedValue))
+                        monitorConfig.Enabled = capturedValue == "yes";
+
+                    Console.Write($"GardenHub MQTT Address ({monitorConfig.MQTTServer}): ");
+                    capturedValue = Console.ReadLine();
+                    monitorConfig.MQTTServer =
+                        string.IsNullOrWhiteSpace(capturedValue) ? monitorConfig.MQTTServer : capturedValue;
+
+                    Console.Write($"MQTT Port ({monitorConfig.MQTTPort}): ");
+                    capturedValue = Console.ReadLine();
+                    monitorConfig.MQTTPort = string.IsNullOrWhiteSpace(capturedValue)
+                        ? monitorConfig.MQTTPort
+                        : Convert.ToInt32(capturedValue);
+                }
                 
-                Console.Write($"GardenHub MQTT Address ({monitorConfig.MQTTServer}): ");
-                capturedValue = Console.ReadLine();
-                monitorConfig.MQTTServer =
-                    string.IsNullOrWhiteSpace(capturedValue) ? monitorConfig.MQTTServer : capturedValue;
-                
-                Console.Write($"MQTT Port ({monitorConfig.MQTTPort}): ");
-                capturedValue = Console.ReadLine();
-                monitorConfig.MQTTPort = string.IsNullOrWhiteSpace(capturedValue) ? monitorConfig.MQTTPort : Convert.ToInt32(capturedValue);
-                
-                Console.WriteLine("Please enter the Reporting interval in the following format: days:hours:minutes:seconds, eg: 0:1:0:0 is every hour");
+                Console.WriteLine(
+                    "Please enter the Reporting interval in the following format: days:hours:minutes:seconds, eg: 0:1:0:0 is every hour");
 
                 do
                 {
@@ -113,10 +138,10 @@ public class MonitorManager
                 {
                     Console.Write($"Enable Temperature sensor ({(monitorConfig.EnableTemperature ? "Yes": "No")}):");
                     capturedValue = Console.ReadLine().ToLower();    
-                } while (capturedValue != "yes" && capturedValue != "no" && string.IsNullOrWhiteSpace(capturedValue));
+                } while (capturedValue != "yes" && capturedValue != "no" && !string.IsNullOrWhiteSpace(capturedValue));
 
                 if(!string.IsNullOrWhiteSpace(capturedValue))
-                    monitorConfig.EnableTemperature =  (capturedValue == "yes") ? true : false;
+                    monitorConfig.EnableTemperature =  capturedValue == "yes";
 
                 if (monitorConfig.EnableTemperature)
                 {
@@ -127,7 +152,7 @@ public class MonitorManager
                         monitorConfig.TemperaturePin = Convert.ToInt32(capturedValue);
                 }
                 
-                monitorConfig.Enabled = true;
+                //monitorConfig.Enabled = true;
                 
                 monitorConfig.Configured = true;
                 monitorConfig.Reconfigure();
@@ -187,7 +212,10 @@ public class MonitorManager
 
                         msg.SoilReadings = soilReadings.ToArray();
                         
-                        await gardenClient.SendMessage<MonitorReadingMessage>(Constants.MQTT.Topics.MonitorReading, msg);
+                        if(monitorConfig.Enabled)
+                            await gardenClient.SendMessage<MonitorReadingMessage>(Constants.MQTT.Topics.MonitorReading, msg);
+                        else
+                            _logger.LogInformation("Monitor not enabled so will not report readings to GardenHub");
 
                         _logger.LogInformation(JsonSerializer.Serialize(msg));
 

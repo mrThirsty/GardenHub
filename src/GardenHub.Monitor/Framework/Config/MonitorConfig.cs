@@ -25,8 +25,10 @@ public class MonitorConfig
         ControllerType = ControllerType.FourSensor;
         EnableTemperature = false;
         TemperaturePin = 24;
+        EnableMQTT = true;
     }
     
+    public bool EnableMQTT { get; set; }
     public string MQTTServer { get; set; }
     public int MQTTPort { get; set; }
     public string MonitorName { get; set; }
@@ -59,6 +61,9 @@ public class MonitorConfig
             MonitorName = details.MonitorName;
             MQTTPort = details.MQTTPort;
             MQTTServer = details.MQTTServer;
+            EnableTemperature = details.EnableTemperature;
+            TemperaturePin = details.TemperaturePin;
+            EnableMQTT = details.EnableMQTT;
         }
         else
         {

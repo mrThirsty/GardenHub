@@ -21,7 +21,7 @@ public class GardenHubMQTTClient : IGardenHubClient
         _server = config.MQTTServer;
         _port = config.MQTTPort;
         _clientId = config.MonitorName;
-
+        _allowConnection = config.EnableMQTT;
         _events = events;
         _logger = logger;
         _sensors = config.Sensors.Where(s => s.Enabled).Select(s => s.SensorName);
@@ -29,7 +29,8 @@ public class GardenHubMQTTClient : IGardenHubClient
 
     private MqttFactory _factory;
     private IMqttClient _client;
-    
+
+    private bool _allowConnection = false;
     private bool _connected = false;
     private readonly string _server;
     private readonly int _port;
@@ -40,27 +41,33 @@ public class GardenHubMQTTClient : IGardenHubClient
 
     public async Task Connect()
     {
-        _client = _factory.CreateMqttClient();
-        _client.ApplicationMessageReceivedAsync += ProcessMessage;
-
-        _logger.LogInformation($"Connecting to the MQTT broker: {_server}");
-        var options = new MqttClientOptionsBuilder().WithClientId(_clientId).WithTcpServer(_server, _port).Build();
-        var response = await _client.ConnectAsync(options, CancellationToken.None);
-
-        _connected = response.ResultCode == MqttClientConnectResultCode.Success;
-
-        if (_connected)
+        if (_allowConnection)
         {
-            _logger.LogInformation("Subscribing to GardenHub message Topic");
-            var subscribeDetailOptions = _factory.CreateSubscribeOptionsBuilder()
-                .WithTopicFilter(f => f.WithTopic(GardenHub.Shared.Constants.MQTT.Topics.RequestClientDetails)).Build();
+            _client = _factory.CreateMqttClient();
+            _client.ApplicationMessageReceivedAsync += ProcessMessage;
 
-            await _client.SubscribeAsync(subscribeDetailOptions, CancellationToken.None);
-            
-            var subscribeReconfigureOptions = _factory.CreateSubscribeOptionsBuilder()
-                .WithTopicFilter(f => f.WithTopic($"{GardenHub.Shared.Constants.MQTT.Topics.MonitorReconfigure}/{_clientId}")).Build();
+            _logger.LogInformation($"Connecting to the MQTT broker: {_server}");
+            var options = new MqttClientOptionsBuilder().WithClientId(_clientId).WithTcpServer(_server, _port).Build();
+            var response = await _client.ConnectAsync(options, CancellationToken.None);
 
-            await _client.SubscribeAsync(subscribeReconfigureOptions, CancellationToken.None);
+            _connected = response.ResultCode == MqttClientConnectResultCode.Success;
+
+            if (_connected)
+            {
+                _logger.LogInformation("Subscribing to GardenHub message Topic");
+                var subscribeDetailOptions = _factory.CreateSubscribeOptionsBuilder()
+                    .WithTopicFilter(f => f.WithTopic(GardenHub.Shared.Constants.MQTT.Topics.RequestClientDetails))
+                    .Build();
+
+                await _client.SubscribeAsync(subscribeDetailOptions, CancellationToken.None);
+
+                var subscribeReconfigureOptions = _factory.CreateSubscribeOptionsBuilder()
+                    .WithTopicFilter(f =>
+                        f.WithTopic($"{GardenHub.Shared.Constants.MQTT.Topics.MonitorReconfigure}/{_clientId}"))
+                    .Build();
+
+                await _client.SubscribeAsync(subscribeReconfigureOptions, CancellationToken.None);
+            }
         }
     }
 

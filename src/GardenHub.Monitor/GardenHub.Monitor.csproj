@@ -20,6 +20,7 @@
       <PackageReference Include="Iot.Device.Bindings" Version="2.1.0" />
       <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
       <PackageReference Include="MQTTnet" Version="4.0.1.184" />
+      <PackageReference Include="Serilog.Extensions.Logging.File" Version="3.0.0" />
       <PackageReference Include="System.Device.Gpio" Version="2.1.0" />
     </ItemGroup>
 

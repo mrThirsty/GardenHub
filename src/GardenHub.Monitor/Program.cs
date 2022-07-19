@@ -39,6 +39,7 @@ using IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureLogging((_, logging) =>
     {
         logging.AddConsole();
+        logging.AddFile("Logs/gardenHub-{Date}.log");
     }).Build();
 
 var optionsResult = CommandLine.Parser.Default.ParseArguments<MonitorOptions>(args);
